@@ -52,10 +52,10 @@ class Environment:
 		#including the inaccurate sensors
 		for i in self.agentx:
 			for j in self.agenty:
-				north = [self.agentx, self.agenty-1]
-				south = [self.agentx, self.agenty+1]
-				east = [self.agentx+1, self.agenty]
-				west = [self.agentx-1, self.agenty]
+				north = self.world[self.agenty-1, self.agentx]
+				south = self.world[self.agenty+1, self.agentx]
+				east = self.world[self.agenty, self.agentx+1]
+				west = self.world[self.agenty, self.agentx-1]
 		neighbors = [north, south, east, west]
 		return neighbors
 
