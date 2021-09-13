@@ -15,86 +15,104 @@ shelves1 = [[(1,1),'A'],
 			[(2,4),'I'],
 			[(5,3),'J']]
 
+class Environment:
 
-def draw_world(world_size, shelves):
-	#create world and fill with shelf info
-	world = np.empty(shape=world_size, dtype=str)
-	world.fill('_')
-	for (locy,locx), label in shelves1:
-		world[locy,locx] = label
+	def __init__(self, size, shelves):		
+		self.a = Agent()
+		self.agentx = 0
+		self.agenty = 0
+		self.world = self.draw_world(size, shelves)
+		self.steps = 0
+		self.score = 0
 
-	return world
+	def draw_world(self, size, shelves):
+		#create world and fill with shelf info
+		world = np.empty(shape=size, dtype=str)
+		world.fill('_')
+		for (locy,locx), label in shelves:
+			world[locy,locx] = label
+		world[self.agenty,self.agentx] = 'R'
+		os.system('cls')
+		print(world, "\n"*2, self.a.order)
 
-def get_order():
-	shelves = ['A','B','C','D','E','F','G','H','I','J']
-	order = []
-	order_length = np.random.randint(1,10)
-	for x in range(0,order_length):
-		order.append(shelves.pop(np.random.randint(10-x)))
-	return order
+		return world
 
-def get_neighbors(robot_pos, world):
-	#robot perception of the world 
-	#including the inaccurate sensors
-	return 0
+	def get_order(self):
+		#generate random list of shelves for an order
+		shelves = ['A','B','C','D','E','F','G','H','I','J']
+		order = []
+		order_length = np.random.randint(1,11)
+		for x in range(0,order_length):
+			order.append(shelves.pop(np.random.randint(10-x)))
 
-def get_action(neighbors, order):
-	#if a neighbor is part of the order,  move to it
-	#else move random
-	return 0 
+		return order
 
-#robot
-#states are neighbors and orders
-visited = np.zeros(world_size)
-robot_pos = [0,0]
-visited[robot_pos[0],robot_pos[1]] = 1
+	def get_neighbors(self):
+		#agent perception of the world 
+		#including the inaccurate sensors
+		neighbors = []
+		return neighbors
 
-def robot_move(action):
-	#up
-	if(action == 72):
-		robot_pos[0] = np.maximum(robot_pos[0]-1,0)
-	#down
-	elif(action == 80):
-		robot_pos[0] = np.minimum(robot_pos[0]+1,5)
-	#left
-	elif(action == 75):
-		robot_pos[1] = np.maximum(robot_pos[1]-1,0)
-	#right
-	elif(action == 77):
-		robot_pos[1] = np.minimum(robot_pos[1]+1,5)
+	def agent_move(self, action):
+		#up
+		if(action == 72):
+			self.agenty = np.maximum(self.agenty-1,0)
+		#down
+		elif(action == 80):
+			self.agenty = np.minimum(self.agenty+1,5)
+		#left
+		elif(action == 75):
+			self.agentx = np.maximum(self.agentx-1,0)
+		#right
+		elif(action == 77):
+			self.agentx = np.minimum(self.agentx+1,5)	
 
-	visited[robot_pos[0],robot_pos[1]] = 1
+		self.steps += 1	
 
-order = get_order()
+	def run_order(self, number):
+		self.a.order = self.get_order()
+		world = self.draw_world(world_size, shelves1)
+		self.score = 3*len(self.a.order)
 
-c = 0
-steps = 0
-world = draw_world(world_size,shelves1)
+		while self.a.order:
+			action = self.a.get_action()
 
-while(c != 113):
-	if(c == 224):
+			if action == 113:
+				break
+
+			self.agent_move(action)
+			tile = world[self.agenty, self.agentx]
+			world = self.draw_world(world_size, shelves1)
+			
+			if tile in self.a.order:
+				self.a.order.remove(tile)
+				self.draw_world(world_size, shelves1)
+
+		self.score -= self.steps
+		print("ORDER", number, "COMPLETED IN", self.steps, "STEPS")
+		print("SCORE =", self.score)
+
+#agent states are neighbors and orders
+#simple reflex agent looks at current state and returns action
+class Agent:
+
+	def __init__(self):
+		self.neighbors = []
+		self.order = []
+
+	def get_action(self):
+		#if a neighbor is part of the order,  move to it
+		#else move random
+		action = 0
+
 		c = ord(getch())
-		robot_move(c)
-		steps += 1
+		if c == 224:
+			action = ord(getch())
+		elif c == 113:
+			action = 113
 
-	state = world[robot_pos[0],robot_pos[1]]
-	if state in order:
-		order.remove(state)		
-
-	os.system('cls')
-	world = draw_world(world_size, shelves1)
-	world[robot_pos[0],robot_pos[1]] = 'R'
-	print(world, "\n"*2, visited, "\n"*2, order)
-
-	if not order:
-		print("ORDER DONE IN ", steps,"STEPS")
-		break
-
-	c = ord(getch())
+		return action
 
 
-
-
-
-
-
+e = Environment(world_size, shelves1)
+e.run_order(1)
