@@ -50,7 +50,13 @@ class Environment:
 	def get_neighbors(self):
 		#agent perception of the world 
 		#including the inaccurate sensors
-		neighbors = []
+		for i in self.agentx:
+			for j in self.agenty:
+				north = [self.agentx, self.agenty-1]
+				south = [self.agentx, self.agenty+1]
+				east = [self.agentx+1, self.agenty]
+				west = [self.agentx-1, self.agenty]
+		neighbors = [north, south, east, west]
 		return neighbors
 
 	def agent_move(self, action):
