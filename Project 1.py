@@ -1,20 +1,23 @@
 import numpy as np 
 from msvcrt import getch
 import os
-import random
+from time import sleep
 
 #environment info
 world_size = (6,6)
-shelves1 = [[(1,1),'A'],
-			[(2,2),'B'],
-			[(3,1),'C'],
-			[(0,2),'D'],
-			[(2,0),'E'],
-			[(4,2),'F'],
-			[(1,4),'G'],
-			[(4,5),'H'],
-			[(2,4),'I'],
-			[(5,3),'J']]
+
+shelves1 = {
+	(1,1): 'A',
+	(2,2): 'B',
+	(3,1): 'C',
+	(0,2): 'D',
+	(2,0): 'E',
+	(4,2): 'F',
+	(1,4): 'G',
+	(4,5): 'H',
+	(2,4): 'I',
+	(5,3): 'J'
+}
 
 class Environment:
 
@@ -28,13 +31,13 @@ class Environment:
 		self.steps = 0 # num steps agent has taken
 		self.score = 0 # keeps agent's score
 
-	def draw_world(self, size, shelves):
+	def draw_world(self):
 		#create world and fill with shelf info
 		#world = np.empty(shape=size, dtype=str) #declares an empty numpy array of shape 'size' (global) and type string
 		newWorld = self.world
 		newWorld.fill('_') # fills the numpy array with underscore char
-		for (locy,locx), label in shelves:  # sets 
-			newWorld[locy,locx] = label
+		for locy, locx in self.shelves:  # sets 
+			newWorld[locy][locx] = self.shelves[(locy, locx)]
 		newWorld[self.agenty,self.agentx] = 'R'
 		os.system('cls')
 		print(newWorld, "\n"*2, self.a.order)
@@ -60,11 +63,9 @@ class Environment:
 		east = self.world[self.agenty][self.agentx+1] if self.agentx < 5 else None
 		west = self.world[self.agenty][self.agentx-1] if self.agentx > 0 else None
 		neighbors = [north, south, east, west]
-		current_tile = self.world[self.agenty][self.agentx]
-
 
 		print("\nNorth:", north, "\nSouth:", south, "\nEast:", east, "\nWest:", west)
-		return neighbors, current_tile
+		return neighbors
 
 	def agent_move(self, action):
 		#up
@@ -82,26 +83,28 @@ class Environment:
 
 		self.steps += 1	
 
-	def run_order(self, number):
-		self.a.order = self.get_order()
-		world = self.draw_world(world_size, shelves1)
-		self.score = 3*len(self.a.order)
+	def run_order(self, order_amount):
 
-		while self.a.order:
-			self.get_neighbors()
-			action = self.a.get_action()
+		for order_index in range(order_amount):
+			self.a.order = self.get_order()
+			self.score = 3*len(self.a.order)	
 
-			self.agent_move(action)
-			tile = world[self.agenty, self.agentx]
-			world = self.draw_world(world_size, shelves1)
-			
-			if tile in self.a.order:
-				self.a.order.remove(tile)
-				self.draw_world(world_size, shelves1)
+			while self.a.order:
+				self.draw_world()
+				self.a.neighbors = self.get_neighbors()
+				action = self.a.get_action()
+				self.agent_move(action)
+				current_tile = self.world[self.agenty][self.agentx]
+				
+				if current_tile in self.a.order:
+					self.a.order.remove(current_tile)
 
-		self.score -= self.steps
-		print("ORDER", number, "COMPLETED IN", self.steps, "STEPS")
-		print("SCORE =", self.score)
+				sleep(0.1)
+
+			self.draw_world()
+			self.score -= self.steps
+			print("ORDER", order_index+1,"/", order_amount, "COMPLETED IN", self.steps, "STEPS")
+			print("SCORE =", self.score)
 
 #agent states are neighbors and orders
 #simple reflex agent looks at current state and returns action
@@ -124,11 +127,10 @@ class Agent:
 		
 		#if the neighbors have nothing in the order, then move in a random direction
 		if action == -1:
-			action = np.randint(4)
+			action = np.random.randint(4)
 
 		return action
 
 
 e = Environment(world_size, shelves1)
 e.run_order(1)
-e.get_neighbors()
