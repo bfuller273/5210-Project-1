@@ -18,46 +18,47 @@ shelves1 = [[(1,1),'A'],
 
 class Environment:
 
-	def __init__(self, size, shelves):		
-		self.a = Agent()
-		self.agentx = 0
-		self.agenty = 0
-		self.world = self.draw_world(size, shelves)
-		self.steps = 0
-		self.score = 0
+	def __init__(self, size, shelves): # environment constructor		
+		self.a = Agent() # agent object
+		self.agentx = 0 # tracks agent's x pos
+		self.agenty = 0 # tracks agent's y pos
+		#self.world = self.draw_world(size, shelves)
+		self.world = np.empty(shape=size, dtype=str)
+		self.steps = 0 # num steps agent has taken
+		self.score = 0 # keeps agent's score
 
 	def draw_world(self, size, shelves):
 		#create world and fill with shelf info
-		world = np.empty(shape=size, dtype=str)
-		world.fill('_')
-		for (locy,locx), label in shelves:
-			world[locy,locx] = label
-		world[self.agenty,self.agentx] = 'R'
+		#world = np.empty(shape=size, dtype=str) #declares an empty numpy array of shape 'size' (global) and type string
+		NewWorld = self.world
+		NewWorld.fill('_') # fills the numpy array with underscore char
+		for (locy,locx), label in shelves:  # sets 
+			NewWorld[locy,locx] = label
+		NewWorld[self.agenty,self.agentx] = 'R'
 		os.system('cls')
-		print(world, "\n"*2, self.a.order)
+		print(NewWorld, "\n"*2, self.a.order)
 
-		return world
+		return NewWorld
 
 	def get_order(self):
 		#generate random list of shelves for an order
-		shelves = ['A','B','C','D','E','F','G','H','I','J']
-		order = []
-		order_length = np.random.randint(1,11)
+		shelves = ['A','B','C','D','E','F','G','H','I','J'] # list of 10 shelves (given by problem)
+		order = [] # empty order list to be populated
+		order_length = np.random.randint(1,11) # random order length between 1 and 10 (shifted for 0-based)
 		for x in range(0,order_length):
-			order.append(shelves.pop(np.random.randint(10-x)))
+			order.append(shelves.pop(np.random.randint(10-x))) # appends a random shelf to 'orders' and removes it from 'shelves'
 
 		return order
 
 	def get_neighbors(self):
 		#agent perception of the world 
 		#including the inaccurate sensors
-		for i in self.agentx: # i and j may need to be reversed
-			for j in self.agenty:
-				north = self.world[self.agenty-1, self.agentx]
-				south = self.world[self.agenty+1, self.agentx]
-				east = self.world[self.agenty, self.agentx+1]
-				west = self.world[self.agenty, self.agentx-1]
+		north = np.where(self.world[self.agenty-1, self.agentx])
+		south = self.world[self.agenty+1, self.agentx]
+		east = self.world[self.agenty, self.agentx+1]
+		west = self.world[self.agenty, self.agentx-1]
 		neighbors = [north, south, east, west]
+		print("\nNorth:", north, "\nSouth:", south, "\nEast:", east, "\nWest:", west)
 		return neighbors
 
 	def agent_move(self, action):
@@ -131,3 +132,4 @@ class Agent:
 
 e = Environment(world_size, shelves1)
 e.run_order(1)
+e.get_neighbors()
