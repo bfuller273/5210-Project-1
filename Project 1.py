@@ -110,13 +110,13 @@ class Agent:
 	def get_action(self):
 		#if a neighbor is part of the order,  move to it
 		#else move random
-		for j in self.world: #columns
-			for i in self.world: #rows
-				if self.world[i][j] == self.neighbors[i][j]:
-					self.agentx == i
-					self.agenty == j
-				else:
-					random(np.size(self.neighbors))
+		for j in self.neighbors: # iterate thru neighbors columns
+			for i in self.neighbors: # iterate thru neighbors rows
+				if self.neighbors[i][j] == self.order[i][j]: # if any of the agent's current neighbors match a shelf in an order...
+					self.agentx == i # move the agent to the shelf's x position (row)
+					self.agenty == j # move the agent to the shelf's y position (column)
+				else: # otherwise (no match found)...
+					random(np.size(self.neighbors[i][j])) # generate a random number based on neighbors (which is all valid positions that can be moved to)
 					
 		action = 0
 
