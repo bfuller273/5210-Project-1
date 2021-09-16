@@ -30,15 +30,15 @@ class Environment:
 	def draw_world(self, size, shelves):
 		#create world and fill with shelf info
 		#world = np.empty(shape=size, dtype=str) #declares an empty numpy array of shape 'size' (global) and type string
-		NewWorld = self.world
-		NewWorld.fill('_') # fills the numpy array with underscore char
+		newWorld = self.world
+		newWorld.fill('_') # fills the numpy array with underscore char
 		for (locy,locx), label in shelves:  # sets 
-			NewWorld[locy,locx] = label
-		NewWorld[self.agenty,self.agentx] = 'R'
+			newWorld[locy,locx] = label
+		newWorld[self.agenty,self.agentx] = 'R'
 		os.system('cls')
-		print(NewWorld, "\n"*2, self.a.order)
+		print(newWorld, "\n"*2, self.a.order)
 
-		return NewWorld
+		return newWorld
 
 	def get_order(self):
 		#generate random list of shelves for an order
@@ -53,7 +53,7 @@ class Environment:
 	def get_neighbors(self):
 		#agent perception of the world 
 		#including the inaccurate sensors
-		north = np.where(self.world[self.agenty-1, self.agentx])
+		north = self.world[np.where([self.agenty-1, self.agentx+1])]
 		south = self.world[self.agenty+1, self.agentx]
 		east = self.world[self.agenty, self.agentx+1]
 		west = self.world[self.agenty, self.agentx-1]
