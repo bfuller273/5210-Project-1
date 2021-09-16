@@ -22,7 +22,8 @@ class Environment:
 		self.a = Agent() # agent object
 		self.agentx = 0 # tracks agent's x pos
 		self.agenty = 0 # tracks agent's y pos
-		#self.world = self.draw_world(size, shelves)
+		self.shelves = shelves
+		self.size = size
 		self.world = np.empty(shape=size, dtype=str)
 		self.steps = 0 # num steps agent has taken
 		self.score = 0 # keeps agent's score
@@ -51,29 +52,33 @@ class Environment:
 		return order
 
 	def get_neighbors(self):
-		#agent perception of the world 
-		#including the inaccurate sensors
-		north = self.world[np.where([self.agenty-1, self.agentx+1])]
-		south = self.world[self.agenty+1, self.agentx]
-		east = self.world[self.agenty, self.agentx+1]
-		west = self.world[self.agenty, self.agentx-1]
+		#agent perception of the world including the inaccurate sensors
+
+		#first find the true neighbors, None when the agent is against an edge of the world
+		north = self.world[self.agenty-1][self.agentx] if self.agenty > 0 else None
+		south = self.world[self.agenty+1][self.agentx] if self.agenty < 5 else None
+		east = self.world[self.agenty][self.agentx+1] if self.agentx < 5 else None
+		west = self.world[self.agenty][self.agentx-1] if self.agentx > 0 else None
 		neighbors = [north, south, east, west]
+		current_tile = self.world[self.agenty][self.agentx]
+
+
 		print("\nNorth:", north, "\nSouth:", south, "\nEast:", east, "\nWest:", west)
-		return neighbors
+		return neighbors, current_tile
 
 	def agent_move(self, action):
 		#up
-		if(action == 72):
+		if(action == 0):
 			self.agenty = np.maximum(self.agenty-1,0)
 		#down
-		elif(action == 80):
+		elif(action == 1):
 			self.agenty = np.minimum(self.agenty+1,5)
-		#left
-		elif(action == 75):
-			self.agentx = np.maximum(self.agentx-1,0)
 		#right
-		elif(action == 77):
-			self.agentx = np.minimum(self.agentx+1,5)	
+		elif(action == 2):
+			self.agentx = np.minimum(self.agentx+1,5)
+		#left
+		elif(action == 3):
+			self.agentx = np.maximum(self.agentx-1,0)			
 
 		self.steps += 1	
 
@@ -83,10 +88,8 @@ class Environment:
 		self.score = 3*len(self.a.order)
 
 		while self.a.order:
+			self.get_neighbors()
 			action = self.a.get_action()
-
-			if action == 113:
-				break
 
 			self.agent_move(action)
 			tile = world[self.agenty, self.agentx]
@@ -109,23 +112,19 @@ class Agent:
 		self.order = []
 
 	def get_action(self):
-		#if a neighbor is part of the order,  move to it
-		#else move random
-		for j in self.neighbors: # iterate thru neighbors columns
-			for i in self.neighbors: # iterate thru neighbors rows
-				if self.neighbors[i][j] == self.order[i][j]: # if any of the agent's current neighbors match a shelf in an order...
-					self.agentx == i # move the agent to the shelf's x position (row)
-					self.agenty == j # move the agent to the shelf's y position (column)
-				else: # otherwise (no match found)...
-					random(np.size(self.neighbors[i][j])) # generate a random number based on neighbors (which is all valid positions that can be moved to)
-					
-		action = 0
-
-		c = ord(getch())
-		if c == 224:
-			action = ord(getch())
-		elif c == 113:
-			action = 113
+		#if a neighbor is part of the order move to it, else move random
+		action = -1
+		#loop through neighbors and compares to order, if found then set action to move to that neighbor
+		#action values: up=0, down=1, right=2, left=3
+		#stops after finding the first neighbor in the order
+		for index, neighbor in enumerate(self.neighbors):
+			if neighbor in self.order:
+				action = index
+				break
+		
+		#if the neighbors have nothing in the order, then move in a random direction
+		if action == -1:
+			action = np.randint(4)
 
 		return action
 
