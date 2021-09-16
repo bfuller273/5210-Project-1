@@ -1,6 +1,7 @@
 import numpy as np 
 from msvcrt import getch
 import os
+import random
 
 #environment info
 world_size = (6,6)
@@ -50,7 +51,7 @@ class Environment:
 	def get_neighbors(self):
 		#agent perception of the world 
 		#including the inaccurate sensors
-		for i in self.agentx:
+		for i in self.agentx: # i and j may need to be reversed
 			for j in self.agenty:
 				north = self.world[self.agenty-1, self.agentx]
 				south = self.world[self.agenty+1, self.agentx]
@@ -109,6 +110,14 @@ class Agent:
 	def get_action(self):
 		#if a neighbor is part of the order,  move to it
 		#else move random
+		for j in self.world: #columns
+			for i in self.world: #rows
+				if self.world[i][j] == self.neighbors[i][j]:
+					self.agentx == i
+					self.agenty == j
+				else:
+					random(np.size(self.neighbors))
+					
 		action = 0
 
 		c = ord(getch())
