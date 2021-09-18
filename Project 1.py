@@ -39,8 +39,8 @@ class Environment:
 		for locy, locx in self.shelves:  # sets 
 			newWorld[locy][locx] = self.shelves[(locy, locx)]
 		newWorld[self.agenty,self.agentx] = 'R'
-		os.system('cls')
-		print(newWorld, "\n"*2, self.a.order)
+		#os.system('cls')
+		#print(newWorld, "\n"*2, self.a.order)
 
 		return newWorld
 
@@ -64,7 +64,7 @@ class Environment:
 		west = self.world[self.agenty][self.agentx-1] if self.agentx > 0 else None
 		neighbors = [north, south, east, west]
 
-		print("\nNorth:", north, "\nSouth:", south, "\nEast:", east, "\nWest:", west)
+		#print("\nNorth:", north, "\nSouth:", south, "\nEast:", east, "\nWest:", west)
 		return neighbors
 
 	def agent_move(self, action):
@@ -85,9 +85,20 @@ class Environment:
 
 	def run_order(self, order_amount):
 
+		shortest_path = []
+		shortest_length = 9999
+		shortest_order = []
+
+		longest_path = []
+		longest_length = 0 
+		longest_order = []
+
 		for order_index in range(order_amount):
+			path = [(self.agenty, self.agentx)]
+			self.steps = 0
 			self.a.order = self.get_order()
 			self.score = 3*len(self.a.order)	
+			path_order = self.a.order.copy()
 
 			while self.a.order:
 				self.draw_world()
@@ -95,16 +106,30 @@ class Environment:
 				action = self.a.get_action()
 				self.agent_move(action)
 				current_tile = self.world[self.agenty][self.agentx]
+				path.append((self.agenty, self.agentx))
 				
 				if current_tile in self.a.order:
 					self.a.order.remove(current_tile)
 
-				sleep(0.1)
+				# sleep(0.1)
 
 			self.draw_world()
 			self.score -= self.steps
+
+			if len(path) > longest_length:
+				longest_path = path.copy()
+				longest_length = len(path)
+				longest_order = path_order
+
+			if len(path) < shortest_length:
+				shortest_path = path.copy()
+				shortest_length = len(path)
+				shortest_order = path_order
+
 			print("ORDER", order_index+1,"/", order_amount, "COMPLETED IN", self.steps, "STEPS")
 			print("SCORE =", self.score)
+
+		return shortest_path, shortest_order, longest_path, longest_order
 
 #agent states are neighbors and orders
 #simple reflex agent looks at current state and returns action
@@ -131,6 +156,8 @@ class Agent:
 
 		return action
 
-
 e = Environment(world_size, shelves1)
-e.run_order(1)
+shortest_path, shortest_order, longest_path, longest_order = e.run_order(555)
+print("SHORTEST PATH:", shortest_path, "\nORDER:", shortest_order)
+print("LONGEST PATH:", longest_path, "\nORDER:", longest_order)
+print(len(longest_path))
