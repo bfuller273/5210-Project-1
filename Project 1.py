@@ -67,9 +67,9 @@ class Environment:
 		for i in neighbors: # for each sensor...
 			roll = np.random.randint(0,8) # roll for probability
 			if roll <= 7: # 80% of the time nothing happens
-				break
+				continue
 			else:
-				reroll = np.random.randint(0,2) 
+				reroll = np.random.randint(0,2) # roll for type of failure (0=senses shelf that is not there, 1=senses incorrect shelf)
 				print("\nReroll: ", reroll)
 				imposter = np.random.randint(0,4)
 				print("\nImposter:", imposter )
@@ -77,7 +77,7 @@ class Environment:
 				if reroll == 0:
 					neighbors[imposter] = None
 				else:
-					neighbors[imposter] = i
+					neighbors[imposter] = i # this has the potential to land on a shelf that is actually there
 
 		#print("\nNorth:", north, "\nSouth:", south, "\nEast:", east, "\nWest:", west)
 		return neighbors
