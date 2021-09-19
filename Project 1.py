@@ -1,5 +1,5 @@
 import numpy as np 
-from msvcrt import getch
+#from msvcrt import getch
 import os
 from time import sleep
 
@@ -63,6 +63,21 @@ class Environment:
 		east = self.world[self.agenty][self.agentx+1] if self.agentx < 5 else None
 		west = self.world[self.agenty][self.agentx-1] if self.agentx > 0 else None
 		neighbors = [north, south, east, west]
+
+		for i in neighbors: # for each sensor...
+			roll = np.random.randint(0,8) # roll for probability
+			if roll <= 7: # 80% of the time nothing happens
+				break
+			else:
+				reroll = np.random.randint(0,2) 
+				print("\nReroll: ", reroll)
+				imposter = np.random.randint(0,4)
+				print("\nImposter:", imposter )
+				
+				if reroll == 0:
+					neighbors[imposter] = None
+				else:
+					neighbors[imposter] = i
 
 		#print("\nNorth:", north, "\nSouth:", south, "\nEast:", east, "\nWest:", west)
 		return neighbors
