@@ -19,6 +19,25 @@ shelves1 = {
 	(5,3): 'J'
 }
 
+shelves2 = {
+	(0,2): 'A',
+	(1,2): 'B',
+	(3,0): 'C',
+	(1,0): 'D',
+	(2,0): 'E',
+	(2,2): 'F',
+	(4,0): 'G',
+	(3,2): 'H',
+	(5,0): 'I',
+	(4,2): 'J',
+	(2,4): 'K',
+	(1,4): 'M',
+	(5,4): 'N',
+	(3,5): 'O',
+	(0,4): 'P',
+	(4,5): 'Q'
+}
+
 class Environment:
 
 	def __init__(self, size, shelves): # environment constructor		
@@ -27,30 +46,35 @@ class Environment:
 		self.agenty = 0 # tracks agent's y pos
 		self.shelves = shelves
 		self.size = size
-		self.world = np.empty(shape=size, dtype=str)
+		self.world = self.make_world()
 		self.steps = 0 # num steps agent has taken
 		self.score = 0 # keeps agent's score
 
-	def draw_world(self):
+	def make_world(self):
 		#create world and fill with shelf info
-		#world = np.empty(shape=size, dtype=str) #declares an empty numpy array of shape 'size' (global) and type string
-		newWorld = self.world
-		newWorld.fill('_') # fills the numpy array with underscore char
+		world = np.empty(shape=self.size, dtype=str) #declares an empty numpy array of shape 'size' (global) and type string
+		world.fill('_') # fills the numpy array with underscore char
 		for locy, locx in self.shelves:  # sets 
-			newWorld[locy][locx] = self.shelves[(locy, locx)]
-		newWorld[self.agenty,self.agentx] = 'R'
-		#os.system('cls')
-		#print(newWorld, "\n"*2, self.a.order)
+			world[locy][locx] = self.shelves[(locy, locx)]		
 
-		return newWorld
+		return world
+
+	def print_world(self):
+		holder = self.world[self.agenty,self.agentx]
+		self.world[self.agenty,self.agentx] = 'R'
+		os.system('cls')
+		print(self.world, "\n"*2, self.a.order)
+		self.world[self.agenty,self.agentx] = holder
 
 	def get_order(self):
 		#generate random list of shelves for an order
-		shelves = ['A','B','C','D','E','F','G','H','I','J'] # list of 10 shelves (given by problem)
+		shelves = list(self.shelves.values()) # list of 10 shelves (given by problem)
+		shelf_amt = len(shelves)
+
 		order = [] # empty order list to be populated
-		order_length = np.random.randint(1,11) # random order length between 1 and 10 (shifted for 0-based)
+		order_length = np.random.randint(1,shelf_amt+1) # random order length between 1 and 10 (shifted for 0-based)
 		for x in range(0,order_length):
-			order.append(shelves.pop(np.random.randint(10-x))) # appends a random shelf to 'orders' and removes it from 'shelves'
+			order.append(shelves.pop(np.random.randint(shelf_amt-x))) # appends a random shelf to 'orders' and removes it from 'shelves'
 
 		return order
 
@@ -62,9 +86,23 @@ class Environment:
 		south = self.world[self.agenty+1][self.agentx] if self.agenty < 5 else None
 		east = self.world[self.agenty][self.agentx+1] if self.agentx < 5 else None
 		west = self.world[self.agenty][self.agentx-1] if self.agentx > 0 else None
-		neighbors = [north, south, east, west]
+		neighbors = [north, south, east, west]		
 
-		#print("\nNorth:", north, "\nSouth:", south, "\nEast:", east, "\nWest:", west)
+		#sensor inaccuracy
+		shelves = list(self.shelves.values())
+		for index, neighbor in enumerate(neighbors):
+			#10% of the time the sensor fails, and the robot thinks that a shelf is present when it is not the case
+			if neighbor == '_':
+				if np.random.randint(10) == 9:
+					rand_shelf = shelves[np.random.randint(10)]
+					neighbors[index] = rand_shelf
+			#10% of the time a shelf exists but the sensor fails to detect it
+			elif neighbor in shelves:
+				if np.random.randint(10) == 9:
+					neighbors[index] = '_'
+
+		# print("\nNorth:", neighbors[0], "\nSouth:", neighbors[1], "\nEast:", neighbors[2], "\nWest:", neighbors[3])
+
 		return neighbors
 
 	def agent_move(self, action):
@@ -84,24 +122,32 @@ class Environment:
 		self.steps += 1	
 
 	def run_order(self, order_amount):
-
+		#path record-keeping variables
 		shortest_path = []
 		shortest_length = 9999
 		shortest_order = []
-
 		longest_path = []
 		longest_length = 0 
 		longest_order = []
 
+		score_list = np.zeros(order_amount)
+
 		for order_index in range(order_amount):
 			path = [(self.agenty, self.agentx)]
 			self.steps = 0
+			#update agent order state
 			self.a.order = self.get_order()
 			self.score = 3*len(self.a.order)	
 			path_order = self.a.order.copy()
 
+			#initial check on starting tile
+			current_tile = self.world[self.agenty][self.agentx]
+			if current_tile in self.a.order:
+				self.a.order.remove(current_tile)
+
+			#for each order: get neighbors and update agent neighbor state, request action from agent, move agent, then check current tile for part of order
 			while self.a.order:
-				self.draw_world()
+				# self.print_world()
 				self.a.neighbors = self.get_neighbors()
 				action = self.a.get_action()
 				self.agent_move(action)
@@ -111,11 +157,10 @@ class Environment:
 				if current_tile in self.a.order:
 					self.a.order.remove(current_tile)
 
-				# sleep(0.1)
-
-			self.draw_world()
+			# self.print_world()
 			self.score -= self.steps
 
+			#update the longest and shortest path if the current order is the new longest/shortest
 			if len(path) > longest_length:
 				longest_path = path.copy()
 				longest_length = len(path)
@@ -125,11 +170,10 @@ class Environment:
 				shortest_path = path.copy()
 				shortest_length = len(path)
 				shortest_order = path_order
+				
+			score_list[order_index] = self.score
 
-			print("ORDER", order_index+1,"/", order_amount, "COMPLETED IN", self.steps, "STEPS")
-			print("SCORE =", self.score)
-
-		return shortest_path, shortest_order, longest_path, longest_order
+		return shortest_path, shortest_order, longest_path, longest_order, np.average(score_list)
 
 #agent states are neighbors and orders
 #simple reflex agent looks at current state and returns action
@@ -151,13 +195,16 @@ class Agent:
 				break
 		
 		#if the neighbors have nothing in the order, then move in a random direction
-		if action == -1:
+		while action == -1:
 			action = np.random.randint(4)
+			if self.neighbors[action] == None:
+				action = -1
 
 		return action
 
-e = Environment(world_size, shelves1)
-shortest_path, shortest_order, longest_path, longest_order = e.run_order(555)
+e = Environment(world_size, shelves2)
+shortest_path, shortest_order, longest_path, longest_order, avg_score = e.run_order(1000)
+
 print("SHORTEST PATH:", shortest_path, "\nORDER:", shortest_order)
 print("LONGEST PATH:", longest_path, "\nORDER:", longest_order)
-print(len(longest_path))
+print("AVERAGE SCORE:", avg_score)
