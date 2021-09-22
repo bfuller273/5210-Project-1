@@ -125,20 +125,24 @@ class Environment:
 		#path record-keeping variables
 		shortest_path = []
 		shortest_length = 9999
+		shortest_score = 0
 		shortest_order = []
 		longest_path = []
 		longest_length = 0 
 		longest_order = []
+		longest_score = 0
 
 		score_list = np.zeros(order_amount)
 
+		#loop for the amount of orders in an episode
 		for order_index in range(order_amount):
 			path = [(self.agenty, self.agentx)]
 			self.steps = 0
+
 			#update agent order state
-			self.a.order = self.get_order()
-			self.score = 3*len(self.a.order)	
-			path_order = self.a.order.copy()
+			self.a.order = self.get_order()	
+			path_order = self.a.order.copy()			
+			self.score = 3*len(self.a.order)
 
 			#initial check on starting tile
 			current_tile = self.world[self.agenty][self.agentx]
@@ -151,9 +155,9 @@ class Environment:
 				self.a.neighbors = self.get_neighbors()
 				action = self.a.get_action()
 				self.agent_move(action)
-				current_tile = self.world[self.agenty][self.agentx]
 				path.append((self.agenty, self.agentx))
 				
+				current_tile = self.world[self.agenty][self.agentx]
 				if current_tile in self.a.order:
 					self.a.order.remove(current_tile)
 
@@ -165,15 +169,17 @@ class Environment:
 				longest_path = path.copy()
 				longest_length = len(path)
 				longest_order = path_order
+				longest_score = self.score
 
 			if len(path) < shortest_length:
 				shortest_path = path.copy()
 				shortest_length = len(path)
 				shortest_order = path_order
-				
+				shortest_score = self.score
+
 			score_list[order_index] = self.score
 
-		return shortest_path, shortest_order, longest_path, longest_order, np.average(score_list)
+		return shortest_path, shortest_order, shortest_score, longest_path, longest_order, longest_score, np.average(score_list)
 
 #agent states are neighbors and orders
 #simple reflex agent looks at current state and returns action
@@ -197,14 +203,17 @@ class Agent:
 		#if the neighbors have nothing in the order, then move in a random direction
 		while action == -1:
 			action = np.random.randint(4)
+			#if the action would result in running into the wall, try again
 			if self.neighbors[action] == None:
 				action = -1
 
 		return action
 
+#create environment and run for 1000 orders on either shelves1 or shelves2
 e = Environment(world_size, shelves2)
-shortest_path, shortest_order, longest_path, longest_order, avg_score = e.run_order(1000)
+shortest_path, shortest_order, shortest_score, longest_path, longest_order, longest_score, avg_score = e.run_order(1000)
 
-print("SHORTEST PATH:", shortest_path, "\nORDER:", shortest_order)
-print("LONGEST PATH:", longest_path, "\nORDER:", longest_order)
-print("AVERAGE SCORE:", avg_score)
+#print results
+print("SHORTEST PATH:", shortest_path, "\nORDER:", shortest_order, "\nSCORE:", shortest_score)
+print("LONGEST PATH:", longest_path, "\nORDER:", longest_order, "\nSCORE:", longest_score)
+print("\nAVERAGE SCORE:", avg_score)
