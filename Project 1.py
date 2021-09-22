@@ -1,7 +1,5 @@
 import numpy as np 
-from msvcrt import getch
 import os
-from time import sleep
 
 #environment info
 world_size = (6,6)
@@ -60,6 +58,7 @@ class Environment:
 		return world
 
 	def print_world(self):
+		#visualize the world for debugging
 		holder = self.world[self.agenty,self.agentx]
 		self.world[self.agenty,self.agentx] = 'R'
 		os.system('cls')
@@ -141,7 +140,7 @@ class Environment:
 
 			#update agent order state
 			self.a.order = self.get_order()	
-			path_order = self.a.order.copy()			
+			path_order = self.a.order.copy()		
 			self.score = 4*len(self.a.order)
 
 			#initial check on starting tile
