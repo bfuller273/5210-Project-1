@@ -142,7 +142,7 @@ class Environment:
 			#update agent order state
 			self.a.order = self.get_order()	
 			path_order = self.a.order.copy()			
-			self.score = 3*len(self.a.order)
+			self.score = 4*len(self.a.order)
 
 			#initial check on starting tile
 			current_tile = self.world[self.agenty][self.agentx]
