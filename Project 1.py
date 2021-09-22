@@ -160,7 +160,9 @@ class Environment:
 				if current_tile in self.a.order:
 					self.a.order.remove(current_tile)
 
-			# self.print_world()
+			#adjust if no steps are taken
+			if self.steps == 0:
+				self.steps =1
 			self.score -= self.steps
 
 			#update the longest and shortest path if the current order is the new longest/shortest
